@@ -12,6 +12,7 @@ import quru.qa.model.Book;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -24,7 +25,7 @@ public class ZipFileAndJacksonTest {
 
     @Test
     void ZipFileParsingTestXls() throws Exception {
-        try (InputStream is = cl.getResourceAsStream("files.zip");
+        try (InputStream is = cl.getResourceAsStream("qa guru.zip");
              ZipInputStream zis = new ZipInputStream(is)) {
             assert is != null;
             ZipEntry entry;
@@ -32,7 +33,7 @@ public class ZipFileAndJacksonTest {
                 if (entry.getName().contains(".xlsx")) {
                     XLS xls = new XLS(zis);
                     final String actualValue = xls.excel.getSheetAt(0).getRow(0).getCell(0).getStringCellValue();
-                    Assertions.assertTrue(actualValue.contains("Номер заказа"));
+                    Assertions.assertTrue(actualValue.contains("username"));
                 }
             }
         }
@@ -41,7 +42,7 @@ public class ZipFileAndJacksonTest {
 
     @Test
     void ZipFileParsingPdfTest() throws Exception {
-        try (InputStream is = cl.getResourceAsStream("files.zip")) {
+        try (InputStream is = cl.getResourceAsStream("qa guru.zip")) {
             if (is == null) {
                 throw new RuntimeException("Файл не найден");
             }
@@ -50,12 +51,11 @@ public class ZipFileAndJacksonTest {
                 while ((entry = zis.getNextEntry()) != null) {
                     String fileName = entry.getName();
                     System.out.println("Начало обработки файла: " + fileName);
-                    if (fileName.endsWith(".pdf") && !fileName.startsWith("__MACOSX/")) {
+                    if (fileName.endsWith(".pdf")) {
                         try (PDDocument document = PDDocument.load(zis)) {
                             PDFTextStripper pdfStripper = new PDFTextStripper();
                             String text = pdfStripper.getText(document);
-                            Assertions.assertTrue(text.contains("JUnit 5 User Guide"));
-                            System.out.println("Содержимое PDF успешно проверено");
+                            Assertions.assertTrue(text.contains("Where do cats come from?"));
                         } catch (Exception e) {
                             throw new RuntimeException("Ошибка чтения файла PDF", e);
                         }
@@ -69,7 +69,7 @@ public class ZipFileAndJacksonTest {
 
     @Test
     void zipTestCsv() throws Exception {
-        try (InputStream stream = cl.getResourceAsStream("files.zip");
+        try (InputStream stream = cl.getResourceAsStream("qa guru.zip");
              ZipInputStream zis = new ZipInputStream(stream)) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
@@ -78,15 +78,14 @@ public class ZipFileAndJacksonTest {
                     List<String[]> data = csvReader.readAll();
                     Assertions.assertEquals(3, data.size());
                     Assertions.assertArrayEquals(
-                            new String[]{"1", "202699", "1284922"},
-                            data.get(0));
+                            new String[]{"Animal", "cat"},
+                            Arrays.stream(data.get(0)).map(String::trim).toArray());
                     Assertions.assertArrayEquals(
-                            new String[]{"2", "202698", "578399"},
-                            data.get(1));
+                            new String[]{"Season", "summer"},
+                            Arrays.stream(data.get(1)).map(String::trim).toArray());
                     Assertions.assertArrayEquals(
-                            new String[]{"3", "202697", "58933"},
-                            data.get(2));
-                    System.out.println("Содержимое CSV успешно проверено");
+                            new String[]{"Food", "cheese"},
+                            Arrays.stream(data.get(2)).map(String::trim).toArray());
                 }
             }
         }
